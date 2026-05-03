@@ -146,7 +146,7 @@ app.post('/api/solve', async (req: any, res: any) => {
                     type: result.type,
                     solution_latex: result.solution_latex,
                     steps: result.steps
-                }).catch(err => console.error("Failed to save history", err));
+                }).catch((err: any) => console.error("Failed to save history", err));
             }
 
             res.json(result);
