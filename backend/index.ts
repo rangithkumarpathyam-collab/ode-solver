@@ -107,6 +107,15 @@ app.post('/api/solve', async (req: any, res: any) => {
 
     let dataString = '';
     let errorString = '';
+    let responseSent = false;
+
+    pythonProcess.on('error', (error) => {
+        console.error("Failed to start python process:", error);
+        if (!responseSent) {
+            responseSent = true;
+            res.status(500).json({ success: false, error: "Math engine not available", details: error.message });
+        }
+    });
 
     pythonProcess.stdout.on('data', (data) => {
         dataString += data.toString();
@@ -117,6 +126,9 @@ app.post('/api/solve', async (req: any, res: any) => {
     });
 
     pythonProcess.on('close', (code) => {
+        if (responseSent) return;
+        responseSent = true;
+
         if (code !== 0) {
             console.error(`Python script exited with code ${code}`);
             console.error(`Error: ${errorString}`);
@@ -147,6 +159,26 @@ app.post('/api/solve', async (req: any, res: any) => {
 
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok' });
+});
+
+app.get('/api/debug', (req, res) => {
+    const isProd = __dirname.endsWith('dist');
+    const baseDir = isProd ? path.join(__dirname, '..') : __dirname;
+    const pythonExecutable = process.platform === 'win32' 
+        ? path.join(baseDir, 'venv', 'Scripts', 'python.exe')
+        : path.join(baseDir, 'venv', 'bin', 'python');
+        
+    const scriptPath = path.join(baseDir, 'solve_ode.py');
+    const fs = require('fs');
+    res.json({
+        __dirname,
+        isProd,
+        baseDir,
+        pythonExecutable,
+        pythonExists: fs.existsSync(pythonExecutable),
+        scriptPath,
+        scriptExists: fs.existsSync(scriptPath)
+    });
 });
 
 app.listen(PORT, () => {
