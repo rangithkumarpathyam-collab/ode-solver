@@ -13,6 +13,8 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
   const [mounted, setMounted] = useState(false);
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
@@ -40,7 +42,7 @@ export default function Home() {
     setResult(null);
 
     try {
-      const response = await axios.post("http://localhost:5000/api/solve", {
+      const response = await axios.post(`${API_URL}/api/solve`, {
         equation
       }, {
         headers: token ? { Authorization: `Bearer ${token}` } : {}
@@ -60,7 +62,7 @@ export default function Home() {
   const fetchHistory = async () => {
     if (!token) return;
     try {
-      const res = await axios.get("http://localhost:5000/api/history", {
+      const res = await axios.get(`${API_URL}/api/history`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setHistory(res.data);
@@ -73,7 +75,7 @@ export default function Home() {
     e.preventDefault();
     try {
       const endpoint = isLogin ? "login" : "register";
-      const res = await axios.post(`http://localhost:5000/api/auth/${endpoint}`, authForm);
+      const res = await axios.post(`${API_URL}/api/auth/${endpoint}`, authForm);
       setToken(res.data.token);
       setUser(res.data.user);
       localStorage.setItem("token", res.data.token);
@@ -152,19 +154,19 @@ export default function Home() {
           </p>
         </div>
 
-        <form onSubmit={handleSolve} className="w-full max-w-2xl relative mb-12">
-          <div className="glass-card p-2 rounded-full flex items-center shadow-2xl transition-all duration-300 focus-within:shadow-blue-500/20 focus-within:border-blue-500/50">
+        <form onSubmit={handleSolve} className="w-full max-w-2xl relative mb-12 px-4 md:px-0">
+          <div className="glass-card p-2 rounded-2xl md:rounded-full flex flex-col md:flex-row items-center shadow-2xl transition-all duration-300 focus-within:shadow-blue-500/20 focus-within:border-blue-500/50">
             <input 
               type="text" 
               value={equation}
               onChange={(e) => setEquation(e.target.value)}
               placeholder="e.g. y' = x + y"
-              className="flex-1 bg-transparent border-none outline-none px-6 py-4 text-xl text-white placeholder-gray-500 font-mono"
+              className="w-full md:flex-1 bg-transparent border-none outline-none px-6 py-4 text-xl text-white placeholder-gray-500 font-mono"
             />
             <button 
               type="submit" 
               disabled={loading || !equation}
-              className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-full font-semibold transition-all flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full md:w-auto bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-xl md:rounded-full font-semibold transition-all flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Solve"}
             </button>
