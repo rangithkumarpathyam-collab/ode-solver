@@ -14,7 +14,11 @@ const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey123';
 
 connectDB();
 
-app.use(cors());
+app.use(cors({
+  origin: ['https://ode-solver-kappa.vercel.app', 'http://localhost:3000'],
+  credentials: true
+}));
+
 app.use(express.json());
 
 // --- Auth Middleware ---
@@ -89,11 +93,15 @@ app.post('/api/solve', async (req: any, res: any) => {
     }
 
     // Path to the python executable in the virtual environment
+    // Handle both dev (src) and prod (dist) directory structures
+    const isProd = __dirname.endsWith('dist');
+    const baseDir = isProd ? path.join(__dirname, '..') : __dirname;
+
     const pythonExecutable = process.platform === 'win32' 
-        ? path.join(__dirname, 'venv', 'Scripts', 'python.exe')
-        : path.join(__dirname, 'venv', 'bin', 'python');
+        ? path.join(baseDir, 'venv', 'Scripts', 'python.exe')
+        : path.join(baseDir, 'venv', 'bin', 'python');
         
-    const scriptPath = path.join(__dirname, 'solve_ode.py');
+    const scriptPath = path.join(baseDir, 'solve_ode.py');
 
     const pythonProcess = spawn(pythonExecutable, [scriptPath, equation]);
 
